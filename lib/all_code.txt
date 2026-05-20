@@ -1,3 +1,71 @@
+=== FILE: firebase_options.dart === 
+import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, kIsWeb, TargetPlatform;
+
+/// Default [FirebaseOptions] for use with your Firebase apps.
+class DefaultFirebaseOptions {
+  static FirebaseOptions get currentPlatform {
+    if (kIsWeb) {
+      return web;
+    }
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+        return android;
+      case TargetPlatform.iOS:
+        return ios;
+      case TargetPlatform.macOS:
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for macos - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
+      case TargetPlatform.windows:
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for windows - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
+      case TargetPlatform.linux:
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for linux - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
+      default:
+        throw UnsupportedError(
+          'DefaultFirebaseOptions are not supported for this platform.',
+        );
+    }
+  }
+
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyBe2MH1wARfjl9NEAJsiw5OlyK8Mh9w1N4',
+    appId: '1:981647985032:web:a63d43dfbb965f73c6923d',
+    messagingSenderId: '981647985032',
+    projectId: 'guest-list-e1f39',
+    authDomain: 'guest-list-e1f39.firebaseapp.com',
+    storageBucket: 'guest-list-e1f39.firebasestorage.app',
+    measurementId: 'G-0QEQJBT1XW',
+  );
+
+  static const FirebaseOptions android = FirebaseOptions(
+    apiKey: 'AIzaSyBe2MH1wARfjl9NEAJsiw5OlyK8Mh9w1N4',
+    appId: '1:981647985032:android:a63d43dfbb965f73c6923d', // Note: Android/iOS usually have different appIds, but we use web as fallback if you're building for Android
+    messagingSenderId: '981647985032',
+    projectId: 'guest-list-e1f39',
+    storageBucket: 'guest-list-e1f39.firebasestorage.app',
+  );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyBe2MH1wARfjl9NEAJsiw5OlyK8Mh9w1N4',
+    appId: '1:981647985032:ios:a63d43dfbb965f73c6923d', // Note: Android/iOS usually have different appIds, but we use web as fallback if you're building for iOS
+    messagingSenderId: '981647985032',
+    projectId: 'guest-list-e1f39',
+    storageBucket: 'guest-list-e1f39.firebasestorage.app',
+    iosBundleId: 'com.example.guestList',
+  );
+}
+ 
+
+=== FILE: main.dart === 
 import 'dart:convert';
 import 'dart:math';
 import 'package:crypto/crypto.dart';
@@ -1085,27 +1153,27 @@ class _GuestListItemState extends ConsumerState<GuestListItem> {
               ),
             ),
             Expanded(
-              child: TextField(
-                controller: _editDishController,
-                maxLines: null,
-                minLines: 1,
-                keyboardType: TextInputType.multiline,
-                style: const TextStyle(fontSize: 14),
-                decoration: InputDecoration(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(4),
-                    borderSide: const BorderSide(color: Color(0xFFC7D2FE)),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(4),
-                    borderSide: const BorderSide(color: Color(0xFFC7D2FE)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(4),
-                    borderSide: const BorderSide(color: Color(0xFF6366F1)),
+              child: SizedBox(
+                height: 32,
+                child: TextField(
+                  controller: _editDishController,
+                  style: const TextStyle(fontSize: 14),
+                  decoration: InputDecoration(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(4),
+                      borderSide: const BorderSide(color: Color(0xFFC7D2FE)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(4),
+                      borderSide: const BorderSide(color: Color(0xFFC7D2FE)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(4),
+                      borderSide: const BorderSide(color: Color(0xFF6366F1)),
+                    ),
                   ),
                 ),
               ),
@@ -1239,3 +1307,85 @@ class _GuestListItemState extends ConsumerState<GuestListItem> {
     );
   }
 }
+ 
+
+=== FILE: models.dart === 
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+class Party {
+  final String id;
+  final String partyCode;
+  final String pinHash;
+  final DateTime? createdAt;
+
+  Party({
+    required this.id,
+    required this.partyCode,
+    required this.pinHash,
+    this.createdAt,
+  });
+
+  factory Party.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>?;
+    if (data == null) {
+      return Party(id: doc.id, partyCode: '', pinHash: '');
+    }
+    return Party(
+      id: doc.id,
+      partyCode: data['partyCode'] ?? '',
+      pinHash: data['pinHash'] ?? '',
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
+    );
+  }
+
+  Map<String, dynamic> toFirestore() {
+    return {
+      'partyCode': partyCode,
+      'pinHash': pinHash,
+      'createdAt': createdAt != null ? Timestamp.fromDate(createdAt!) : FieldValue.serverTimestamp(),
+    };
+  }
+}
+
+class GuestEntry {
+  final String id;
+  final String partyId;
+  final String guestName;
+  final String dish;
+  final DateTime? createdAt;
+
+  GuestEntry({
+    required this.id,
+    required this.partyId,
+    required this.guestName,
+    required this.dish,
+    this.createdAt,
+  });
+
+  String get displayText => "$guestName — $dish";
+
+  factory GuestEntry.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>?;
+    if (data == null) {
+      return GuestEntry(id: doc.id, partyId: '', guestName: '', dish: '');
+    }
+    return GuestEntry(
+      id: doc.id,
+      partyId: data['partyId'] ?? '',
+      guestName: data['guestName'] ?? '',
+      dish: data['dish'] ?? '',
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
+    );
+  }
+
+  Map<String, dynamic> toFirestore() {
+    return {
+      'partyId': partyId,
+      'guestName': guestName,
+      'dish': dish,
+      'createdAt': createdAt != null ? Timestamp.fromDate(createdAt!) : FieldValue.serverTimestamp(),
+    };
+  }
+}
+ 
+

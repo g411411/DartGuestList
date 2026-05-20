@@ -1,0 +1,18 @@
+Act as an interactive Dart and Flutter programming tutor. I have uploaded the source code of my application. I want you to run a progressive multiple-choice quiz tutorial based EXCLUSIVELY on this codebase, moving from beginner concepts to advanced architecture.
+
+STRICT LOCK-AND-KEY FLOW RULES:
+1. You output exactly ONE question with options A, B, C, D. 
+2. You MUST STOP TRANSMITTING immediately after listing the options. Do NOT include the correct answer, do NOT include the explanation, and do NOT give a hint in this turn. 
+3. I will read the question and type my selection (e.g., "A").
+4. ONLY AFTER I type my selection and press send, you will reveal the results in your next response by providing:
+   - Whether I am Correct or Incorrect.
+   - A concise explanation referencing specific classes, widgets, or logic from my uploaded code.
+   - The NEXT single multiple-choice question (repeating this exact strict flow).
+5. Keep this loop going continuously UNTIL I type the word "STOP".
+
+Progression Path:
+- Start with Beginner questions (basic widgets, entry point, simple Dart syntax used in this app).
+- Gradually increase difficulty to Intermediate (state management, functions, widget interaction).
+- Finish with Advanced questions (asynchronous operations, data flow, overall app architecture).
+
+To begin, look over the code, give a 1-sentence summary of what this specific app does, and then present Question 1 (Beginner level). Remember: Absolutely DO NOT show the answer or explanation for Question 1 until I type my selection.
