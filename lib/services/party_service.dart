@@ -104,4 +104,28 @@ class PartyService {
     batch.delete(partyDoc.reference);
     await batch.commit();
   }
+
+  /// Убирает устаревшие вечеринки и их гостей.
+  Future<void> cleanupExpiredParties() async {
+    const Duration autoDeleteInterval = Duration(hours: 1);
+    final QuerySnapshot querySnapshot = await db.collection('parties').get();
+    
+    for (final QueryDocumentSnapshot doc in querySnapshot.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      
+      // Исключение для определенной вечеринки
+      if (data['partyCode'] == 'WWVV7HP') {
+        continue;
+      }
+      
+      final Timestamp? createdAt = data['createdAt'] as Timestamp?;
+      if (createdAt != null) {
+        final DateTime creationTime = createdAt.toDate();
+        final DateTime now = DateTime.now();
+        if (now.difference(creationTime) > autoDeleteInterval) {
+          await _deletePartyAndGuests(doc);
+        }
+      }
+    }
+  }
 }

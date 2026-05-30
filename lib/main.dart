@@ -8,6 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 // Подключаем Firebase Core для работы с базой данных
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'services/party_service.dart';
 
 import 'state.dart';
 import 'views/join_view.dart';
@@ -24,6 +26,13 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Выполняем очистку старых вечеринок при каждом запуске
+  try {
+    await PartyService(FirebaseFirestore.instance).cleanupExpiredParties();
+  } catch (e) {
+    debugPrint('Error during cleanup: $e');
+  }
 
   // runApp запускает наше приложение. 
   // ProviderScope - это обязательная обертка для Riverpod, которая хранит все state providers.
